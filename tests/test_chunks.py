@@ -135,3 +135,12 @@ def test_empty_text_document_returns_422():
         files={"file": ("blank.txt", b"  \n  ", "text/plain")},
     )
     assert response.status_code == 422
+
+
+
+def test_retrieval_expands_common_legal_synonyms():
+    chunks = [
+        {"index": 1, "start": 0, "end": 35, "text": "The parties submit disputes to arbitration."},
+        {"index": 2, "start": 36, "end": 80, "text": "The seller shall reimburse the buyer's fees."},
+    ]
+    assert rank_chunks("refund policy", chunks)[0]["index"] == 2
