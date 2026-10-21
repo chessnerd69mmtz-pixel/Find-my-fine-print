@@ -227,7 +227,7 @@ END SOURCE SEGMENT"""
         evidence = item.get("supporting_quote")
         if isinstance(evidence, str) and evidence and evidence in chunk["text"]:
             absolute = chunk["start"] + chunk["text"].find(evidence)
-            item.update({"source_reference": _source_reference(full_text, absolute), "source_offsets": [absolute, absolute + len(evidence)], "evidence_verified": True})
+            item.update({"source_reference": source_reference(full_text, absolute), "source_offsets": [absolute, absolute + len(evidence)], "evidence_verified": True})
         else:
             item.update({"source_reference": "Unverified: no exact supporting quote", "source_offsets": None, "evidence_verified": False})
         verified_risks.append(item)
