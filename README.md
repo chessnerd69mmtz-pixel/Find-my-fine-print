@@ -26,10 +26,12 @@ Hosted providers send selected document sections to their service and remain sub
 ## Reliability and privacy notes
 
 - TF-IDF retrieval preserves negations and legal operators rather than dropping them as generic English stop words.
-- Quotation references are derived from extracted source markers, and quote offsets are returned. A loophole finding without an exact supporting quote is explicitly marked unverified.
+- Quotation references and offsets are derived from extracted source markers. Potential loopholes must include a verbatim supporting quote; the backend checks it against the exact retrieved segment and marks missing or mismatched evidence unverified. A matching quote proves only that the text exists, not that the legal interpretation is correct.
+- All-sections mode has no fixed section-count cap. Hosted Gemini/Groq analysis uses bounded concurrency (default 3, configurable with `CLAUSELENS_CLOUD_CONCURRENCY`, maximum 6); local Ollama analysis remains sequential by default to avoid overwhelming laptop memory and compute.
+- DOCX extraction includes body paragraphs, tables with row-level markers, and section headers/footers when available. Footnotes, endnotes, textboxes, scanned images, and complex layouts may still be omitted by the underlying extraction libraries.
 - Model interpretation is not independently proven correct. Review the original document, especially for consequential decisions; this is not legal advice.
 - Local Ollama mode processes model requests on your computer. The app's default bind address is `127.0.0.1`; do not expose it publicly without authentication, HTTPS, rate limiting, and secure secret handling.
-- Scanned PDFs need OCR before upload. PDF/DOCX extraction may not preserve all layout, images, footnotes, textboxes, or complex formatting.
+- Scanned PDFs need OCR before upload. Files with no extractable words are rejected rather than sent to a model. PDF/DOCX extraction may not preserve all layout, images, footnotes, endnotes, textboxes, or complex formatting.
 - GitHub Pages cannot run this Python/FastAPI backend; run it locally or deploy the backend to a Python-capable host with appropriate security controls.
 
 ## Tests
