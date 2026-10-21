@@ -44,7 +44,7 @@ def extract_document(filename: str, data: bytes) -> str:
     if ext == ".docx":
         from io import BytesIO
         doc = Document(BytesIO(data))
-        paragraphs = [f"[Paragraph {i}]\\n{p.text}" for i, p in enumerate(doc.paragraphs, 1) if p.text.strip()]
+        paragraphs = [f"[Paragraph {i}]\n{p.text}" for i, p in enumerate(doc.paragraphs, 1) if p.text.strip()]
         for table_index, table in enumerate(doc.tables, 1):
             paragraphs.append(f"[Table {table_index}]")
             for row in table.rows:
@@ -94,12 +94,30 @@ def rank_chunks(question: str, chunks: list[dict[str, Any]], limit: int = 12) ->
     return ranked[:min(limit, len(ranked))]
 
 
-def _source_reference(full_text: str, offset: int) -> str:
+def source_reference(full_text: str, offset: int) -> str:
     marker_re = re.compile(r"\[(?:Page \d+|Paragraph \d+|Table \d+(?:, row \d+)?)\]")
     last = None
     for match in marker_re.finditer(full_text, 0, max(0, min(len(full_text), offset + 1))):
         last = match.group(0)[1:-1]
     return last or f"Extracted text, character {max(0, offset)}"
+
+
+def _normalize_model_data(data: Any) -> dict[str, Any]:
+    if not isinstance(data, dict):
+        raise RuntimeError("The model returned valid JSON, but it was not a JSON object. Try another model or a smaller section.")
+    result = {
+        "scope_note": data.get("scope_note") if isinstance(data.get("scope_note"), str) else "",
+        "plain_english_answer": data.get("plain_english_answer") if isinstance(data.get("plain_english_answer"), str) else "No answer generated.",
+        "relevant_quotes": data.get("relevant_quotes", []),
+        "potential_loopholes": data.get("potential_loopholes", []),
+        "what_to_verify": data.get("what_to_verify", []),
+        "caveats": data.get("caveats") if isinstance(data.get("caveats"), str) else "",
+    }
+    for key in ("relevant_quotes", "potential_loopholes", "what_to_verify"):
+        if not isinstance(result[key], list):
+            result[key] = []
+    result["what_to_verify"] = [x.strip() for x in result["what_to_verify"] if isinstance(x, str) and x.strip()]
+    return result
 
 
 def call_model(question: str, filename: str, chunk: dict[str, Any], segment_number: int,
@@ -161,12 +179,7 @@ END SOURCE SEGMENT"""
             content = response.json()["choices"][0]["message"]["content"]
         else:
             raise RuntimeError("Unsupported AI provider. Choose Ollama, Gemini, or Groq.")
-        data = json.loads(content)
-        if not isinstance(data, dict):
-            raise RuntimeError("The model returned valid JSON, but it was not a JSON object. Try another model or a smaller section.")
-        for key in ("relevant_quotes", "potential_loopholes", "what_to_verify"):
-            if not isinstance(data.get(key, []), list):
-                data[key] = []
+        data = _normalize_model_data(json.loads(content))
     except requests.ConnectionError as exc:
         if provider == "ollama":
             raise RuntimeError(f"Cannot reach Ollama at {OLLAMA_URL}. Start Ollama and pull model '{model or OLLAMA_MODEL}'.") from exc
@@ -200,7 +213,7 @@ END SOURCE SEGMENT"""
             quote_start = chunk["text"].find(quote)
             verified_quotes.append({
                 "verbatim": quote,
-                "reference": _source_reference(full_text, chunk["start"] + quote_start),
+                "reference": source_reference(full_text, chunk["start"] + quote_start),
                 "relevance": str(q.get("relevance") or ""),
                 "segment": segment_number,
                 "source_offsets": [chunk["start"] + quote_start, chunk["start"] + quote_start + len(quote)],
@@ -262,6 +275,8 @@ async def analyze(file: UploadFile = File(...), question: str = Form(...), max_s
         text = extract_document(filename, raw)
     except ValueError as exc:
         raise HTTPException(415, str(exc))
+    except Exception as exc:
+        raise HTTPException(422, f"File could not be parsed; it may be damaged or encrypted ({type(exc).__name__}).")
     if not text.strip():
         raise HTTPException(422, "No readable text was extracted. Scanned PDFs need OCR before upload.")
     if len(text) > MAX_EXTRACTED_CHARS:
