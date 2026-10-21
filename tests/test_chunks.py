@@ -92,7 +92,7 @@ def test_normalize_model_data_filters_malformed_items():
 
 
 def test_source_reference_supports_docx_table_rows_and_headers():
-    source = "[Header 1]\\nPrivate terms\\n[Table 2, row 3]\\nLate fee: 5%"
+    source = "[Header 1]\nPrivate terms\n[Table 2, row 3]\nLate fee: 5%"
     assert source_reference(source, source.index("Late fee")) == "Table 2, row 3"
     assert source_reference(source, source.index("Private")) == "Header 1"
 
@@ -132,6 +132,6 @@ def test_empty_text_document_returns_422():
     response = client.post(
         "/api/analyze",
         data={"question": "termination", "provider": "ollama", "max_sections": "1"},
-        files={"file": ("blank.txt", b"  \\n  ", "text/plain")},
+        files={"file": ("blank.txt", b"  \n  ", "text/plain")},
     )
     assert response.status_code == 422
