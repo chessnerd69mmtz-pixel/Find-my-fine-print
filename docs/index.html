@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Find My Fine Print — Contract & Rulebook Analysis</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header><div class="brand"><span class="mark">§</span><div><strong>Find My Fine Print</strong><small>LOCAL-FIRST · WEB EDITION</small></div></div><div id="health" class="health">Checking local model…</div></header>
+<main>
+<section class="hero"><p class="eyebrow" id="privacy-label">LOCAL MODE: document text is processed on this computer by Ollama.</p><h1>Find what the fine print <em>actually says.</em></h1><p>Search contracts and rulebooks, verify verbatim passages, and flag potential ambiguities. Ollama runs locally by default without an API key or per-request API fees. Gemini and Groq are optional hosted providers.</p></section>
+<section class="workspace">
+<section class="connection-panel">
+<h2>Choose where analysis runs</h2>
+<p class="hint">Local is selected by default. Your contract stays on your computer when using your own local backend and Ollama. Cloud analysis sends the document to the cloud backend and then to the selected AI provider.</p>
+<label for="connection-mode">Analysis connection</label>
+<select id="connection-mode"><option value="local" selected>Local computer — private-first</option><option value="cloud">Cloud backend — shareable online mode</option></select>
+<label for="api-base">Backend URL</label>
+<input id="api-base" type="url" spellcheck="false" autocomplete="url" value="http://127.0.0.1:8000" placeholder="https://your-service.onrender.com">
+<p class="hint" id="connection-help">Local mode requires the companion Python app running on your computer at http://127.0.0.1:8000.</p>
+</section>
+<form id="form">
+<label for="file">Contract or rulebook</label>
+<input id="file" name="file" type="file" accept=".pdf,.docx,.txt,.md,.text" required>
+<p class="hint">PDF, DOCX, TXT, Markdown · Up to 50 MB by default. Scanned PDFs need OCR first.</p>
+<label for="provider">AI provider</label>
+<select id="provider" name="provider">
+<option value="ollama" selected>Ollama — local, no API key</option>
+<option value="gemini">Google Gemini API — external</option>
+<option value="groq">Groq API — external</option>
+</select>
+<p class="hint">Ollama is the default. Cloud providers send retrieved document sections to their API and follow their own quotas, terms and possible charges.</p>
+<div id="key-group" hidden>
+<label for="api_key">Your API key</label>
+<input id="api_key" name="api_key" type="password" autocomplete="off" placeholder="Paste your provider API key">
+<p id="key-help" class="hint">Your key is used for the current request and is not written to a settings file or database. Only use this local app on a trusted computer.</p>
+<p id="key-link" class="hint"></p>
+</div>
+<label for="model">Model</label>
+<input id="model" name="model" type="text" value="llama3.2" autocomplete="off" spellcheck="false">
+<p id="model-help" class="hint">Ollama model name. Default: llama3.2.</p>
+<label for="question">What should Find My Fine Print investigate?</label>
+<textarea id="question" name="question" rows="4" placeholder="e.g. Find every condition that allows termination without notice, including exceptions." required></textarea>
+<div class="row"><label for="sections">Sections to analyse</label><select id="sections" name="max_sections"><option value="6">6 — faster</option><option value="12" selected>12 — balanced</option><option value="20">20 — broader review</option><option value="30">30 — broad review</option><option value="0">All sections — most coverage</option></select></div>
+<button id="submit" type="submit">Analyse document →</button>
+<p class="hint">All sections reviews every extracted chunk and can take a long time on large documents. Local use has no per-request API fee, but speed depends on your computer.</p>
+</form>
+<section id="state" class="state"><div class="symbol">⌕</div><h2>Ready when you are</h2><p>Choose a document and ask a specific question to begin. For local analysis, start the companion app. For cloud analysis, enter your deployed backend URL and choose Gemini or Groq with your own key.</p></section>
+<section id="results" hidden>
+<div id="summary" class="summary"></div>
+<nav class="tabs"><button type="button" data-tab="quotes" class="active">Verbatim evidence</button><button type="button" data-tab="risks">Potential loopholes</button><button type="button" data-tab="answer">Answer & caveats</button><button type="button" data-tab="checks">What to verify</button></nav>
+<div id="content"></div>
+<button id="copy" type="button" class="secondary">Copy report</button>
+</section>
+</section>
+<p class="disclaimer">When using Gemini or Groq, the retrieved document sections needed for analysis are sent to that provider. Avoid uploading confidential or privileged documents unless you have checked the provider's privacy terms and are authorised to share them. API keys are never included in the repository. Find My Fine Print is an informational tool, not a law firm or a substitute for qualified legal advice. Local AI can miss context or misinterpret legal effect. Exact quotes and source offsets are checked against extracted text. Findings without an exact supporting quote are marked unverified. Verify evidence in the original file before relying on it.</p>
+</main>
+<script src="./app.js"></script>
+</body></html>
