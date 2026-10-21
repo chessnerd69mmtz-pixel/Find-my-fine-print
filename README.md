@@ -1,32 +1,42 @@
 # Find My Fine Print — Local Edition
 
-A local-first contract and rulebook analysis app. Upload PDF, DOCX, TXT, or Markdown files, ask a question, review exact-source-verified quotes, and inspect potential loopholes.
+A local-first contract and rulebook analysis app. Upload PDF, DOCX, TXT, or Markdown files, ask a question, inspect exact-source-verified quotes, and review potential ambiguities.
 
-## AI providers
+## Free local use (recommended)
 
-**Ollama is the default** and uses `llama3.2` locally. No hosted API key is required for local inference.
+- **Ollama + `llama3.2` is the default.** It runs on your computer, requires no API key, and has no per-request hosted AI API fee.
+- Install Ollama from https://ollama.com/download, then run `ollama pull llama3.2`.
+- The practical limits are your computer's RAM/CPU/GPU, disk space, document size, and how long you are willing to wait. No app can promise infinite processing capacity.
+- Choose **All sections** to send every extracted chunk through the selected model. This removes the former 30-section cap, but large documents can take a long time.
+- The default file cap is 50 MiB and extracted-text cap is 1.2 million characters. Adjust `CLAUSELENS_MAX_UPLOAD_BYTES` and `CLAUSELENS_MAX_EXTRACTED_CHARS` in your environment if your machine can handle more.
 
 Optional hosted providers:
-- **Gemini API key:** https://aistudio.google.com/app/apikey (default model `gemini-2.5-flash`)
-- **Groq API key:** https://console.groq.com/keys (default model `openai/gpt-oss-120b`; check current models at https://console.groq.com/docs/models)
+- Gemini API key: https://aistudio.google.com/app/apikey
+- Groq API key: https://console.groq.com/keys
 
-Enter your own key in the app's masked field. The local app does not save keys to a settings file, database, or browser storage. Hosted analysis sends selected document sections to that provider; usage limits, terms, privacy policies, and potential charges apply. Never commit API keys to this repository.
+Hosted providers send selected document sections to their service and remain subject to provider quotas, terms, privacy policies, and possible charges. API keys are submitted for the current request and are not saved by the app or committed to this repository.
 
 ## Run locally
 
 1. Install Python 3.11+ from https://www.python.org/downloads/.
-2. For local inference, install Ollama from https://ollama.com/download and run `ollama pull llama3.2`.
-3. Clone/download the repository and run `run_windows.bat` on Windows. On macOS/Linux, run `chmod +x run_linux_mac.sh` followed by `./run_linux_mac.sh`.
+2. Install Ollama and run `ollama pull llama3.2` (once).
+3. On Windows, run `run_windows.bat`. On macOS/Linux, run `chmod +x run_linux_mac.sh` and then `./run_linux_mac.sh`.
 4. Open http://127.0.0.1:8000.
-5. Choose Ollama (default), Gemini, or Groq in the provider selector.
 
-## Privacy and deployment notes
+## Reliability and privacy notes
 
-- The app is designed for local use on `127.0.0.1`. Do not expose it to the internet without authentication, HTTPS, rate limiting, and secure secret handling.
-- Gemini/Groq mode sends retrieved source segments to the chosen provider. Check provider terms before uploading confidential or privileged material.
-- TF-IDF retrieval can miss clauses; quote validation does not guarantee complete coverage or correct legal interpretation. This is informational, not legal advice.
-- GitHub Pages cannot run this Python/FastAPI backend. This repository is the source-code project; run locally or deploy the backend to a Python-capable host with proper security controls.
+- TF-IDF retrieval preserves negations and legal operators rather than dropping them as generic English stop words.
+- Quotation references are derived from extracted source markers, and quote offsets are returned. A loophole finding without an exact supporting quote is explicitly marked unverified.
+- Model interpretation is not independently proven correct. Review the original document, especially for consequential decisions; this is not legal advice.
+- Local Ollama mode processes model requests on your computer. The app's default bind address is `127.0.0.1`; do not expose it publicly without authentication, HTTPS, rate limiting, and secure secret handling.
+- Scanned PDFs need OCR before upload. PDF/DOCX extraction may not preserve all layout, images, footnotes, textboxes, or complex formatting.
+- GitHub Pages cannot run this Python/FastAPI backend; run it locally or deploy the backend to a Python-capable host with appropriate security controls.
 
 ## Tests
 
-Run `python -m pytest -q` from the project folder.
+```bash
+python -m pip install -r requirements.txt
+python -m pytest -q
+node --check static/app.js
+python -m py_compile app.py
+```
