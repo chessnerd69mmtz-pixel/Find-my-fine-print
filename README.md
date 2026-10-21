@@ -25,7 +25,7 @@ Hosted providers send selected document sections to their service and remain sub
 
 ## Reliability and privacy notes
 
-- TF-IDF retrieval preserves negations and legal operators rather than dropping them as generic English stop words.
+- TF-IDF retrieval preserves negations and legal operators rather than dropping them as generic English stop words. A secondary synonym-aware score also expands common legal-language variants (for example, refund/reimbursement and termination/cancellation) while keeping the user's original query weighted more heavily. Retrieval remains heuristic and can still miss unusual or cross-referenced wording.
 - Quotation references and offsets are derived from extracted source markers. Potential loopholes must include a verbatim supporting quote; the backend checks it against the exact retrieved segment and marks missing or mismatched evidence unverified. A matching quote proves only that the text exists, not that the legal interpretation is correct.
 - All-sections mode has no fixed section-count cap. Hosted Gemini/Groq analysis uses bounded concurrency (default 3, configurable with `CLAUSELENS_CLOUD_CONCURRENCY`, maximum 6); local Ollama analysis remains sequential by default to avoid overwhelming laptop memory and compute.
 - DOCX extraction includes body paragraphs, tables with row-level markers, and section headers/footers when available. Footnotes, endnotes, textboxes, scanned images, and complex layouts may still be omitted by the underlying extraction libraries.
