@@ -317,8 +317,27 @@ async def analyze(file: UploadFile = File(...), question: str = Form(...), max_s
     selected = rank_chunks(question, chunks, limit=None if max_sections <= 0 else min(max_sections, len(chunks)))
     results = []
     try:
-        for i, chunk in enumerate(selected, 1):
-            results.append(await asyncio.to_thread(call_model, question, filename, chunk, i, len(selected), provider, api_key, model, text))
+        if provider == "ollama":
+            # Keep local inference sequential by default to avoid overwhelming laptop RAM/VRAM.
+            for i, chunk in enumerate(selected, 1):
+                results.append(await asyncio.to_thread(
+                    call_model, question, filename, chunk, i, len(selected), provider, api_key, model, text
+                ))
+        else:
+            # Hosted providers can benefit from bounded parallel requests. Keep this small
+            # and configurable so users can trade speed against provider rate limits.
+            concurrency = max(1, min(6, int(os.getenv("CLAUSELENS_CLOUD_CONCURRENCY", "3"))))
+            semaphore = asyncio.Semaphore(concurrency)
+
+            async def run_cloud_chunk(i: int, chunk: dict[str, Any]) -> dict[str, Any]:
+                async with semaphore:
+                    return await asyncio.to_thread(
+                        call_model, question, filename, chunk, i, len(selected), provider, api_key, model, text
+                    )
+
+            results = list(await asyncio.gather(
+                *(run_cloud_chunk(i, chunk) for i, chunk in enumerate(selected, 1))
+            ))
     except RuntimeError as exc:
         raise HTTPException(503, str(exc))
     quotes, risks, checks = [], [], []
