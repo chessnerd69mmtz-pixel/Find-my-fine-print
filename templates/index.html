@@ -8,7 +8,7 @@
 <body>
 <header><div class="brand"><span class="mark">§</span><div><strong>Find My Fine Print</strong><small>LOCAL EDITION</small></div></div><div id="health" class="health">Checking local model…</div></header>
 <main>
-<section class="hero"><p class="eyebrow">YOUR DOCUMENTS STAY ON YOUR MACHINE</p><h1>Find what the fine print <em>actually says.</em></h1><p>Search contracts and rulebooks, verify verbatim passages, and flag potential ambiguities. Ollama runs locally by default; optionally connect Gemini or Groq with your own API key.</p></section>
+<section class="hero"><p class="eyebrow" id="privacy-label">LOCAL MODE: document text is processed on this computer by Ollama.</p><h1>Find what the fine print <em>actually says.</em></h1><p>Search contracts and rulebooks, verify verbatim passages, and flag potential ambiguities. Ollama runs locally by default without an API key or per-request API fees. Gemini and Groq are optional hosted providers.</p></section>
 <section class="workspace">
 <form id="form">
 <label for="file">Contract or rulebook</label>
@@ -32,9 +32,9 @@
 <p id="model-help" class="hint">Ollama model name. Default: llama3.2.</p>
 <label for="question">What should Find My Fine Print investigate?</label>
 <textarea id="question" name="question" rows="4" placeholder="e.g. Find every condition that allows termination without notice, including exceptions." required></textarea>
-<div class="row"><label for="sections">Sections to analyse</label><select id="sections" name="max_sections"><option value="6">6 — faster</option><option value="12" selected>12 — balanced</option><option value="20">20 — broader review</option><option value="30">30 — most coverage</option></select></div>
+<div class="row"><label for="sections">Sections to analyse</label><select id="sections" name="max_sections"><option value="6">6 — faster</option><option value="12" selected>12 — balanced</option><option value="20">20 — broader review</option><option value="30">30 — broad review</option><option value="0">All sections — most coverage</option></select></div>
 <button id="submit" type="submit">Analyse document →</button>
-<p class="hint">More sections improve coverage but take longer. For long documents, review in batches and verify every quote against the source.</p>
+<p class="hint">All sections reviews every extracted chunk and can take a long time on large documents. Local use has no per-request API fee, but speed depends on your computer.</p>
 </form>
 <section id="state" class="state"><div class="symbol">⌕</div><h2>Ready when you are</h2><p>Choose a document and ask a specific question to begin. If you choose Gemini or Groq, provide your own key in the AI provider section.</p></section>
 <section id="results" hidden>
@@ -44,7 +44,7 @@
 <button id="copy" type="button" class="secondary">Copy report</button>
 </section>
 </section>
-<p class="disclaimer">When using Gemini or Groq, the retrieved document sections needed for analysis are sent to that provider. Avoid uploading confidential or privileged documents unless you have checked the provider's privacy terms and are authorised to share them. API keys are never included in the repository. Find My Fine Print is an informational tool, not a law firm or a substitute for qualified legal advice. Local AI can miss context or misinterpret legal effect. Exact quotes are checked against extracted text, but verify them in the original file before relying on them.</p>
+<p class="disclaimer">When using Gemini or Groq, the retrieved document sections needed for analysis are sent to that provider. Avoid uploading confidential or privileged documents unless you have checked the provider's privacy terms and are authorised to share them. API keys are never included in the repository. Find My Fine Print is an informational tool, not a law firm or a substitute for qualified legal advice. Local AI can miss context or misinterpret legal effect. Exact quotes and source offsets are checked against extracted text. Findings without an exact supporting quote are marked unverified. Verify evidence in the original file before relying on it.</p>
 </main>
 <script src="/static/app.js"></script>
 </body></html>
