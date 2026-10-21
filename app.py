@@ -99,7 +99,7 @@ def _expand_legal_query(question: str) -> str:
     lowered = question.casefold()
     additions = []
     for group in LEGAL_SYNONYM_GROUPS:
-        if any(re.search(r"\\b" + re.escape(term) + r"\\b", lowered) for term in group):
+        if any(re.search(r"\b" + re.escape(term) + r"\b", lowered) for term in group):
             additions.extend(term for term in group if term.casefold() not in lowered)
     # Bound expansion so a short query cannot become an enormous weighted query.
     return question if not additions else question + " " + " ".join(dict.fromkeys(additions))[:1200]
