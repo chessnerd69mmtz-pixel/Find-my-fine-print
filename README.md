@@ -16,7 +16,7 @@ Enter your own key in the app's masked field. The local app does not save keys t
 
 1. Install Python 3.11+ from https://www.python.org/downloads/.
 2. For local inference, install Ollama from https://ollama.com/download and run `ollama pull llama3.2`.
-3. Download/extract the project ZIP and run `run_windows.bat` on Windows, or `./run_linux_mac.sh` on macOS/Linux.
+3. Clone/download the repository and run `run_windows.bat` on Windows. On macOS/Linux, run `chmod +x run_linux_mac.sh` followed by `./run_linux_mac.sh`.
 4. Open http://127.0.0.1:8000.
 5. Choose Ollama (default), Gemini, or Groq in the provider selector.
 
