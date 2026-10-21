@@ -10,6 +10,7 @@ from typing import Any
 import requests
 from docx import Document
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -25,7 +26,10 @@ OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
 CHUNK_WORDS = int(os.getenv("CLAUSELENS_CHUNK_WORDS", "850"))
 CHUNK_OVERLAP = int(os.getenv("CLAUSELENS_CHUNK_OVERLAP", "120"))
 
-app = FastAPI(title="Find My Fine Print", version="1.2.0")
+app = FastAPI(title="Find My Fine Print", version="1.3.0")
+_default_origins = "https://chessnerd69mmtz-pixel.github.io,http://127.0.0.1:8000,http://localhost:8000,http://127.0.0.1:5500,http://localhost:5500"
+_allowed_origins = [origin.strip() for origin in os.getenv("CORS_ORIGINS", _default_origins).split(",") if origin.strip()]
+app.add_middleware(CORSMiddleware, allow_origins=_allowed_origins, allow_credentials=False, allow_methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
 app.mount("/static", StaticFiles(directory=APP_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=APP_DIR / "templates")
 
