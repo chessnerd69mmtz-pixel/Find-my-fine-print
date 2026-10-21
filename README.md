@@ -31,7 +31,7 @@ Hosted providers send selected document sections to their service and remain sub
 - DOCX extraction includes body paragraphs, tables with row-level markers, and section headers/footers when available. Footnotes, endnotes, textboxes, scanned images, and complex layouts may still be omitted by the underlying extraction libraries.
 - Model interpretation is not independently proven correct. Review the original document, especially for consequential decisions; this is not legal advice.
 - Local Ollama mode processes model requests on your computer. The app's default bind address is `127.0.0.1`; do not expose it publicly without authentication, HTTPS, rate limiting, and secure secret handling.
-- Scanned PDFs need OCR before upload. PDF/DOCX extraction may not preserve all layout, images, footnotes, textboxes, or complex formatting.
+- Scanned PDFs need OCR before upload. Files with no extractable words are rejected rather than sent to a model. PDF/DOCX extraction may not preserve all layout, images, footnotes, endnotes, textboxes, or complex formatting.
 - GitHub Pages cannot run this Python/FastAPI backend; run it locally or deploy the backend to a Python-capable host with appropriate security controls.
 
 ## Tests
