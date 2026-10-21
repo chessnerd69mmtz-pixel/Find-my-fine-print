@@ -79,15 +79,44 @@ def split_chunks(text: str, words_per_chunk: int = CHUNK_WORDS, overlap: int = C
     return chunks
 
 
+LEGAL_SYNONYM_GROUPS = (
+    ("terminate", "termination", "terminate the agreement", "cancel", "cancellation", "end the agreement", "expire", "expiry", "withdraw"),
+    ("notice", "notification", "written notice", "advance notice", "prior notice"),
+    ("renew", "renewal", "automatic renewal", "auto-renew", "rollover"),
+    ("refund", "reimburse", "reimbursement", "repayment", "return of fees"),
+    ("indemnify", "indemnification", "hold harmless", "defend and indemnify"),
+    ("liability", "damages", "losses", "limitation of liability", "cap on liability"),
+    ("confidential", "confidentiality", "non-disclosure", "nondisclosure", "proprietary information"),
+    ("assign", "assignment", "transfer", "successor"),
+    ("arbitration", "dispute resolution", "mediation", "governing law", "jurisdiction"),
+    ("penalty", "late fee", "liquidated damages", "charge", "fee"),
+    ("warranty", "guarantee", "disclaimer", "as-is"),
+)
+
+
+def _expand_legal_query(question: str) -> str:
+    """Add common legal-language variants while preserving the user's original wording."""
+    lowered = question.casefold()
+    additions = []
+    for group in LEGAL_SYNONYM_GROUPS:
+        if any(re.search(r"\\b" + re.escape(term) + r"\\b", lowered) for term in group):
+            additions.extend(term for term in group if term.casefold() not in lowered)
+    # Bound expansion so a short query cannot become an enormous weighted query.
+    return question if not additions else question + " " + " ".join(dict.fromkeys(additions))[:1200]
+
+
 def rank_chunks(question: str, chunks: list[dict[str, Any]], limit: int | None = 12) -> list[dict[str, Any]]:
-    """Local ML retrieval: TF-IDF vectors + cosine similarity, no remote embedding API."""
+    """Local ML retrieval with a synonym-aware secondary score; no remote embedding API."""
     if not chunks:
         return []
-    corpus = [question] + [c["text"] for c in chunks]
+    expanded_question = _expand_legal_query(question)
+    corpus = [question, expanded_question] + [c["text"] for c in chunks]
     try:
         vectorizer = TfidfVectorizer(stop_words=None, token_pattern=r"(?u)\b[\w'-]+\b", ngram_range=(1, 2), sublinear_tf=True)
         matrix = vectorizer.fit_transform(corpus)
-        scores = cosine_similarity(matrix[0:1], matrix[1:]).ravel()
+        original_scores = cosine_similarity(matrix[0:1], matrix[2:]).ravel()
+        expanded_scores = cosine_similarity(matrix[1:2], matrix[2:]).ravel()
+        scores = (0.75 * original_scores) + (0.25 * expanded_scores)
     except ValueError:
         scores = [0.0] * len(chunks)
     ranked = []
