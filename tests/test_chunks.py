@@ -77,3 +77,61 @@ def test_malformed_pdf_returns_client_error_not_500():
                            files={"file": ("broken.pdf", b"not a pdf", "application/pdf")})
     assert response.status_code in (413, 422, 503)
     assert response.status_code != 500
+
+
+
+def test_normalize_model_data_filters_malformed_items():
+    normalized = _normalize_model_data({
+        "relevant_quotes": [{"verbatim": "real quote", "reference": "fake", "relevance": "why"}, "bad item"],
+        "potential_loopholes": [{"title": "Risk", "supporting_quote": "exact text", "unexpected": "drop me"}, None],
+        "what_to_verify": [" check this ", 123, ""],
+    })
+    assert normalized["relevant_quotes"] == [{"verbatim": "real quote", "reference": "fake", "relevance": "why"}]
+    assert normalized["potential_loopholes"] == [{"title": "Risk", "supporting_quote": "exact text"}]
+    assert normalized["what_to_verify"] == ["check this"]
+
+
+def test_source_reference_supports_docx_table_rows_and_headers():
+    source = "[Header 1]\\nPrivate terms\\n[Table 2, row 3]\\nLate fee: 5%"
+    assert source_reference(source, source.index("Late fee")) == "Table 2, row 3"
+    assert source_reference(source, source.index("Private")) == "Header 1"
+
+
+def test_all_sections_api_reviews_every_extracted_chunk(monkeypatch):
+    import app as app_module
+
+    fake_chunks = [
+        {"index": i, "start": i * 10, "end": i * 10 + 5, "text": f"clause {i}", "retrieval_score": 0.5}
+        for i in range(1, 4)
+    ]
+    monkeypatch.setattr(app_module, "split_chunks", lambda _text: fake_chunks)
+
+    def fake_model(question, filename, chunk, segment_number, total_segments, provider, api_key, model, full_text):
+        return {
+            "relevant_quotes": [], "potential_loopholes": [],
+            "what_to_verify": [], "plain_english_answer": f"checked {chunk['index']}",
+            "caveats": "",
+        }
+
+    monkeypatch.setattr(app_module, "call_model", fake_model)
+    client = TestClient(app_module.app)
+    response = client.post(
+        "/api/analyze",
+        data={"question": "cancellation", "provider": "ollama", "max_sections": "0"},
+        files={"file": ("sample.txt", b"some readable contract text", "text/plain")},
+    )
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["sections_reviewed"] == 3
+    assert payload["analysis_scope"] == "all chunks"
+    assert "Retrieved section 3: checked 3" in payload["plain_english_answer"]
+
+
+def test_empty_text_document_returns_422():
+    client = TestClient(app)
+    response = client.post(
+        "/api/analyze",
+        data={"question": "termination", "provider": "ollama", "max_sections": "1"},
+        files={"file": ("blank.txt", b"  \\n  ", "text/plain")},
+    )
+    assert response.status_code == 422
