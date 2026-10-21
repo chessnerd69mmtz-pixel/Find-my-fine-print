@@ -16,6 +16,18 @@ Optional hosted providers:
 
 Hosted providers send selected document sections to their service and remain subject to provider quotas, terms, privacy policies, and possible charges. API keys are submitted for the current request and are not saved by the app or committed to this repository.
 
+## Public GitHub Pages website + cloud backend
+
+The repository includes a static frontend in `docs/` intended for GitHub Pages. GitHub Pages only hosts static files; the analysis API still needs a Python host or a local companion service.
+
+1. In GitHub, open **Settings → Pages** and select **GitHub Actions** as the build/deployment source if it is not already enabled.
+2. The `Deploy GitHub Pages` workflow publishes the `docs/` frontend on pushes to `main`. The project URL should be `https://chessnerd69mmtz-pixel.github.io/Find-my-fine-print/` once Pages is enabled and the workflow succeeds.
+3. For cloud analysis, create a Render Web Service from this repository using `render.yaml`. Set `CORS_ORIGINS` to `https://chessnerd69mmtz-pixel.github.io` (the origin, without the project path). The free service can sleep when idle and is not unlimited or always-on.
+4. Open the public website, select **Cloud backend**, enter the actual Render service URL, and select Gemini or Groq with your own API key. Do not select Ollama for cloud mode; the cloud server cannot access Ollama on your computer.
+5. For private local analysis, leave **Local computer** selected, start the local app with `run_windows.bat` (or `run_linux_mac.sh`), and use Ollama `llama3.2`. The static website cannot start the local server for you.
+
+The frontend stores only the connection mode and backend URL in local browser storage. It does not save contract contents or API keys there. Local mode sends requests to `127.0.0.1`; cloud mode sends the uploaded document and request key to the backend you configure. Review the privacy notice before choosing cloud analysis.
+
 ## Run locally
 
 1. Install Python 3.11+ from https://www.python.org/downloads/.
