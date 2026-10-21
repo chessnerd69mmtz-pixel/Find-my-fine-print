@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: find-my-fine-print-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: OLLAMA_MODEL
+        value: llama3.2
+      - key: CORS_ORIGINS
+        value: https://chessnerd69mmtz-pixel.github.io
+      - key: CLAUSELENS_CLOUD_CONCURRENCY
+        value: "2"
